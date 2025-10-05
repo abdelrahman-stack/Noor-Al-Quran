@@ -537,6 +537,7 @@ class _RecitersScreenState extends State<RecitersScreen> {
           children: [
             buildSearchRow(),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 buildLanguageButtons(),
                 ElevatedButton(
@@ -562,7 +563,7 @@ class _RecitersScreenState extends State<RecitersScreen> {
                       Text(
                         'أذكار',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryColor,
                         ),
@@ -571,7 +572,7 @@ class _RecitersScreenState extends State<RecitersScreen> {
                       const Icon(
                         Icons.nights_stay,
                         color: Colors.amber,
-                        size: 24,
+                        size: 20,
                       ),
                     ],
                   ),
@@ -600,7 +601,7 @@ class _RecitersScreenState extends State<RecitersScreen> {
                       Text(
                         'مواقيت الصلاة 🕌',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryColor,
                         ),
