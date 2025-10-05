@@ -13,7 +13,7 @@ class MushafView extends StatelessWidget {
         title: Column(
           children: [
             const Text(
-              'المصحف',
+              ' المصحف الشريف',
               style: TextStyle(color: Colors.white, fontSize: 28),
             ),
             Shimmer.fromColors(
@@ -31,7 +31,7 @@ class MushafView extends StatelessWidget {
         backgroundColor: AppColors.primaryColor,
         elevation: 10,
       ),
-      body: MushafViewBody(),
+      body: SurahListScreen(),
     );
   }
 }

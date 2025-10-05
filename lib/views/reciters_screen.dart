@@ -19,6 +19,8 @@ import 'package:tilawah_app/database_helper.dart';
 import 'package:tilawah_app/generated/l10n.dart';
 import 'package:tilawah_app/model/local_reciter.dart';
 import 'package:tilawah_app/repository/quran_repository_arb.dart';
+import 'package:tilawah_app/views/azkar_view.dart';
+import 'package:tilawah_app/views/prayer_times_view.dart';
 import 'package:tilawah_app/views/quran_page.dart';
 import 'package:tilawah_app/views/mushaf_view.dart';
 import 'package:tilawah_app/widgets/favorite_reciter_list_item.dart';
@@ -534,7 +536,81 @@ class _RecitersScreenState extends State<RecitersScreen> {
         child: Column(
           children: [
             buildSearchRow(),
-            buildLanguageButtons(),
+            Row(
+              children: [
+                buildLanguageButtons(),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    side: BorderSide(color: AppColors.lightPrimaryColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    backgroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AzkarScreen(),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      
+                      
+                      Text(
+                        'أذكار',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      const Icon(
+                        Icons.nights_stay,
+                        color: Colors.amber,
+                        size: 24,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 5),
+                  ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    side: BorderSide(color: AppColors.lightPrimaryColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    backgroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PrayerTimesView(),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      
+                
+                      Text(
+                        'مواقيت الصلاة 🕌',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    
+                    ],
+                  ),
+                ),
+              ],
+            ),
             if (_selectedIndex != 1)
               Container(
                 decoration: const BoxDecoration(

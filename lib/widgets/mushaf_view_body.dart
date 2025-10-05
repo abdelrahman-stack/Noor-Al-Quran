@@ -1,162 +1,203 @@
 import 'package:flutter/material.dart';
-import 'package:tilawah_app/core/utils/app_colors.dart';
-import 'package:tilawah_app/views/surah_view.dart';
+import 'package:qcf_quran/qcf_quran.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class MushafViewBody extends StatelessWidget {
-  MushafViewBody({super.key});
-  final List<String> surahNames = [
-    "الفاتحة",
-    "البقرة",
-    "آل عمران",
-    "النساء",
-    "المائدة",
-    "الأنعام",
-    "الأعراف",
-    "الأنفال",
-    "التوبة",
-    "يونس",
-    "هود",
-    "يوسف",
-    "الرعد",
-    "إبراهيم",
-    "الحجر",
-    "النحل",
-    "الإسراء",
-    "الكهف",
-    "مريم",
-    "طه",
-    "الأنبياء",
-    "الحج",
-    "المؤمنون",
-    "النور",
-    "الفرقان",
-    "الشعراء",
-    "النمل",
-    "القصص",
-    "العنكبوت",
-    "الروم",
-    "لقمان",
-    "السجدة",
-    "الأحزاب",
-    "سبأ",
-    "فاطر",
-    "يس",
-    "الصافات",
-    "ص",
-    "الزمر",
-    "غافر",
-    "فصلت",
-    "الشورى",
-    "الزخرف",
-    "الدخان",
-    "الجاثية",
-    "الأحقاف",
-    "محمد",
-    "الفتح",
-    "الحجرات",
-    "ق",
-    "الذاريات",
-    "الطور",
-    "النجم",
-    "القمر",
-    "الرحمن",
-    "الواقعة",
-    "الحديد",
-    "المجادلة",
-    "الحشر",
-    "الممتحنة",
-    "الصف",
-    "الجمعة",
-    "المنافقون",
-    "التغابن",
-    "الطلاق",
-    "التحريم",
-    "الملك",
-    "القلم",
-    "الحاقة",
-    "المعارج",
-    "نوح",
-    "الجن",
-    "المزمل",
-    "المدثر",
-    "القيامة",
-    "الإنسان",
-    "المرسلات",
-    "النبأ",
-    "النازعات",
-    "عبس",
-    "التكوير",
-    "الانفطار",
-    "المطففين",
-    "الانشقاق",
-    "البروج",
-    "الطارق",
-    "الأعلى",
-    "الغاشية",
-    "الفجر",
-    "البلد",
-    "الشمس",
-    "الليل",
-    "الضحى",
-    "الشرح",
-    "التين",
-    "العلق",
-    "القدر",
-    "البينة",
-    "الزلزلة",
-    "العاديات",
-    "القارعة",
-    "التكاثر",
-    "العصر",
-    "الهمزة",
-    "الفيل",
-    "قريش",
-    "الماعون",
-    "الكوثر",
-    "الكافرون",
-    "النصر",
-    "المسد",
-    "الإخلاص",
-    "الفلق",
-    "الناس",
-  ];
+
+class SurahListScreen extends StatefulWidget {
+  const SurahListScreen({super.key});
+
+  @override
+  State<SurahListScreen> createState() => _SurahListScreenState();
+}
+
+class _SurahListScreenState extends State<SurahListScreen> {
+  final TextEditingController searchController = TextEditingController();
+  List<Map<String, dynamic>> searchResults = [];
+
+  // البحث عن كلمة
+  void searchInQuran(String query) {
+    if (query.trim().isEmpty) {
+      setState(() => searchResults = []);
+      return;
+    }
+
+    final results = Map<String, dynamic>.from(searchWords(query));
+
+    setState(() {
+      searchResults = List<Map<String, dynamic>>.from(
+        results["result"].map((e) => Map<String, dynamic>.from(e)),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        itemCount: surahNames.length,
-        itemBuilder: (context, index) {
-          final surahName = surahNames[index];
-          final surahNumber = index + 1; 
+    final List<String> surahNames = List.generate(
+      totalSurahCount,
+      (index) => getSurahNameArabic(index + 1),
+    );
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 1),
-            child: Card(
-              color: const Color.fromARGB(255, 195, 230, 219),
-              elevation: 2,
-              child: ListTile(
-                title: Text(surahName, style: TextStyle(fontSize: 18)),
-                leading: CircleAvatar(
-                  backgroundColor: AppColors.primaryColor,
-                  child: Text("$surahNumber", style: TextStyle(color: Colors.white)),
+    return Scaffold(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              textAlign: TextAlign.right,
+              decoration: InputDecoration(
+                hintText: "ابحث في القرآن...",
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    searchController.clear();
+                    setState(() {
+                      searchResults = [];
+                    });
+                  },
+                  icon: const Icon(Icons.clear),
                 ),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SurahView(
-                        
-                        surahNumber: surahNumber,
-                        surahName: surahName,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onSubmitted: searchInQuran,
+            ),
+          ),
+          SizedBox(height: 20),
+
+          if (searchResults.isNotEmpty)
+            Expanded(
+              child: ListView.builder(
+                itemCount: searchResults.length,
+                itemBuilder: (context, index) {
+                  final surah = searchResults[index]["suraNumber"];
+                  final verse = searchResults[index]["verseNumber"];
+                  return ListTile(
+                    title: QcfVerse(
+                      surahNumber: surah,
+                      verseNumber: verse,
+                      fontSize: 20,
+                      textColor: Colors.green.shade800,
+                    ),
+                    subtitle: Text(
+                      "سورة ${getSurahNameArabic(surah)} - آية $verse",
+                      textAlign: TextAlign.right,
+                    ),
+                    onTap: () {
+                      final page = getPageNumber(surah, verse);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              SurahView(surahIndex: surah, initialPage: page),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.builder(
+                itemCount: totalSurahCount,
+                itemBuilder: (context, index) {
+                  return Card(
+                    margin: const EdgeInsets.all(8),
+                    color: Colors.white,
+                    child: ListTile(
+                      title: Text(
+                        surahNames[index],
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
+                      onTap: () {
+                        final firstPage = getPageNumber(index + 1, 1);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SurahView(
+                              surahIndex: index + 1,
+                              initialPage: firstPage,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   );
                 },
               ),
             ),
-          );
-        },
-      )
-    ;
+        ],
+      ),
+    );
+  }
+}
+
+
+class SurahView extends StatefulWidget {
+  final int surahIndex;
+  final int initialPage;
+
+  const SurahView({
+    super.key,
+    required this.surahIndex,
+    required this.initialPage,
+  });
+
+  @override
+  State<SurahView> createState() => _SurahViewState();
+}
+
+class _SurahViewState extends State<SurahView> {
+  late int currentPage;
+  late int currentSurah;
+
+  @override
+  void initState() {
+    super.initState();
+    currentSurah = widget.surahIndex;
+    currentPage = widget.initialPage;
+    _loadLastPage();
+  }
+
+
+  Future<void> _loadLastPage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastPage = prefs.getInt('lastPage_${widget.surahIndex}');
+    if (lastPage != null) {
+      setState(() {
+        currentPage = lastPage;
+      });
+    }
+  }
+
+
+  Future<void> _saveLastPage(int page) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('lastPage_${widget.surahIndex}', page);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+      backgroundColor: Colors.white,
+        body: SafeArea(
+          child: PageviewQuran(
+            initialPageNumber: currentPage,
+            textColor: Colors.black,
+            pageBackgroundColor: Colors.white,
+            onPageChanged: (page) {
+              _saveLastPage(page); 
+            },
+          ),
+        ),
+      ),
+    );
   }
 }
