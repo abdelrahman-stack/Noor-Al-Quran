@@ -5,13 +5,24 @@ class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
 
   static Database? _database;
+  static bool _isOpening = false; 
 
   DatabaseHelper._init();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
 
+    
+    if (_isOpening) {
+      
+      await Future.delayed(const Duration(milliseconds: 200));
+      return await database;
+    }
+
+    _isOpening = true;
     _database = await _initDB('app.db');
+    _isOpening = false;
+
     return _database!;
   }
 
@@ -29,14 +40,14 @@ class DatabaseHelper {
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
-    CREATE TABLE settings (
+    CREATE TABLE IF NOT EXISTS settings (
       id INTEGER PRIMARY KEY,
       language TEXT
     )
     ''');
 
     await db.execute('''
-    CREATE TABLE favorites (
+    CREATE TABLE IF NOT EXISTS favorites (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       reciterId TEXT,
       moshafId TEXT
@@ -46,8 +57,9 @@ class DatabaseHelper {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      var tableExist = await db.rawQuery(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='favorites'");
+      final tableExist = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='favorites'",
+      );
       if (tableExist.isEmpty) {
         await db.execute('''
         CREATE TABLE favorites (
@@ -57,16 +69,16 @@ class DatabaseHelper {
         )
         ''');
       } else {
-        await db.execute('''
-        ALTER TABLE favorites ADD COLUMN moshafId TEXT;
-        ''');
+    
+        try {
+          await db.execute('ALTER TABLE favorites ADD COLUMN moshafId TEXT;');
+        } catch (_) {}
       }
     }
   }
 
   Future<void> saveLanguage(String language) async {
     final db = await instance.database;
-
     await db.insert(
       'settings',
       {'id': 1, 'language': language},
@@ -99,7 +111,7 @@ class DatabaseHelper {
       {'reciterId': reciterId, 'moshafId': moshafId},
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
-    print("Added to database: $reciterId with moshafId: $moshafId");
+    print("✅ Added to database: $reciterId with moshafId: $moshafId");
   }
 
   Future<void> removeFavorite(String reciterId, String moshafId) async {
@@ -126,6 +138,14 @@ class DatabaseHelper {
           .toList();
     } else {
       return [];
+    }
+  }
+
+  Future<void> close() async {
+    final db = _database;
+    if (db != null) {
+      await db.close();
+      _database = null;
     }
   }
 }

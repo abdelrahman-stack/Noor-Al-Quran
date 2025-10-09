@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; // ✅ الحل
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:tilawah_app/bloc/bloc_local_Reciters/local_reciters_bloc.dart';
 import 'package:tilawah_app/bloc/internet_bloc/internet_bloc.dart';
 import 'package:tilawah_app/bloc/internet_bloc/internet_event.dart';
@@ -14,11 +14,18 @@ import 'package:tilawah_app/repository/local_reciters_repository.dart';
 import 'package:tilawah_app/repository/quran_repository_arb.dart';
 import 'package:tilawah_app/views/splash_view.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+
   final db = DatabaseHelper.instance;
-  final savedLanguage = await db.getLanguage();
+
+  String? savedLanguage;
+  try {
+    savedLanguage = await db.getLanguage();
+  } catch (e) {
+    debugPrint('Database error (getLanguage): $e');
+  }
 
   runApp(MyApp(savedLanguage: savedLanguage));
 }
@@ -42,14 +49,11 @@ class MyApp extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<InternetBloc>(
-            create: (context) {
-              return InternetBloc()..add(CheckInternet());
-            },
+            create: (context) => InternetBloc()..add(CheckInternet()),
           ),
           BlocProvider<LocalRecitersBloc>(
-            create: (context) {
-              return LocalRecitersBloc(context.read<LocalRecitersRepository>());
-            },
+            create: (context) =>
+                LocalRecitersBloc(context.read<LocalRecitersRepository>()),
           ),
           BlocProvider<LocalizationBloc>(
             create: (context) => LocalizationBloc()
@@ -65,9 +69,15 @@ class MyApp extends StatelessWidget {
             final locale = state.locale;
             return MaterialApp(
               debugShowCheckedModeBanner: false,
+              
+              theme: ThemeData(
+                useMaterial3: true,
+                scaffoldBackgroundColor: Colors.white,
+                colorSchemeSeed: const Color(0xFF1E6B7B),
+              ),
               locale: locale,
               supportedLocales: S.delegate.supportedLocales,
-              localizationsDelegates: [
+              localizationsDelegates: const [
                 S.delegate,
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,

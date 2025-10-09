@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:qcf_quran/qcf_quran.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class SurahListScreen extends StatefulWidget {
   const SurahListScreen({super.key});
 
@@ -137,7 +136,6 @@ class _SurahListScreenState extends State<SurahListScreen> {
   }
 }
 
-
 class SurahView extends StatefulWidget {
   final int surahIndex;
   final int initialPage;
@@ -154,47 +152,51 @@ class SurahView extends StatefulWidget {
 
 class _SurahViewState extends State<SurahView> {
   late int currentPage;
-  late int currentSurah;
+  late String currentSurah;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    currentSurah = widget.surahIndex;
-    currentPage = widget.initialPage;
-    _loadLastPage();
+    _loadLastPosition();
   }
 
-
-  Future<void> _loadLastPage() async {
+  Future<void> _loadLastPosition() async {
     final prefs = await SharedPreferences.getInstance();
-    final lastPage = prefs.getInt('lastPage_${widget.surahIndex}');
-    if (lastPage != null) {
+    final savedPage = prefs.getInt("lastPage");
+    final savedSurah = prefs.getInt("lastSurah");
+
+    if (savedPage != null && savedSurah != null) {
       setState(() {
-        currentPage = lastPage;
+        currentPage = savedPage;
+        currentSurah = getSurahNameArabic(savedSurah);
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        currentPage = widget.initialPage;
+        currentSurah = getSurahNameArabic(widget.surahIndex);
+        isLoading = false;
       });
     }
   }
 
-
-  Future<void> _saveLastPage(int page) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('lastPage_${widget.surahIndex}', page);
-  }
-
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-      backgroundColor: Colors.white,
+        backgroundColor: Colors.white,
+
         body: SafeArea(
           child: PageviewQuran(
             initialPageNumber: currentPage,
             textColor: Colors.black,
             pageBackgroundColor: Colors.white,
-            onPageChanged: (page) {
-              _saveLastPage(page); 
-            },
           ),
         ),
       ),
